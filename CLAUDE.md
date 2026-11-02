@@ -15,7 +15,7 @@ the tests after every upgrade.
 - `opencode.jsonc`: the config, with comments. Its object becomes the value of
   `permission` in `opencode.json`, without the `"$schema"` line (OpenCode
   1.19.5 and later reject it there).
-- `opencode.cases`: the test cases for the config (215).
+- `opencode.cases`: the test cases for the config (213).
 - `src/oc_assert/`: the `oc-assert` tool. For each case it starts the
   real OpenCode binary against a fake model server that asks it to run one
   command, and compares the result (RUN, ASK or DENY) with the expected one.
@@ -53,7 +53,7 @@ and self-contained.
 ```
 RUN   git status
 ASK   git push
-ASK   cat .env
+ASK   cat /etc/hostname
 RUN@1 cd && ls
 ```
 
@@ -96,15 +96,15 @@ RUN@1 cd && ls
      (`--output`, `--ext-diff`, `--textconv`).
 5. Catch-all asks come last: redirects (`*>*`), backticks, `$` (variables and
    `$(...)`), paths outside the workspace (`* /*`, `* ~*`, `* ..` and their
-   quoted and `=` forms), and `.env` files. A quote can follow an option
+   quoted and `=` forms). A quote can follow an option
    directly (`-f"/etc/x"`), so the quoted forms need no leading space. Paths
    attached to a short option that reads a file ask too: `-f` (grep, rg),
    `-X` (diff, du), `-O` and `-S` (git). Bundles can be any length
    (`-inwf/etc/x`), so any `f/` or `f..` after a `-` asks, including ordinary
    paths such as `rg -n x conf/`.
-6. Top level: `"*": "ask"`, so unknown or renamed tools ask; `read` allowed
-   except `.env` files; glob, grep, todowrite and skill allowed; edit,
-   webfetch, websearch, task and external_directory ask.
+6. Top level: `"*": "ask"`, so unknown or renamed tools ask; read, glob,
+   grep, todowrite and skill allowed; edit, webfetch, websearch, task and
+   external_directory ask. `.env` files get no special protection.
 
 ## Known gaps
 

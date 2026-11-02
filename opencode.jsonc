@@ -3,7 +3,7 @@
   // OpenCode permissions: read-only tools and a bash allow-list run without
   // asking; edits, fetches and anything unknown ask. Tested with opencode.cases on OpenCode 1.19.4, 1.19.5 and 2.2.4.
   "*": "ask",                 // any tool not named below asks (incl. renamed keys after an upgrade)
-  "read": { "*": "allow", "*.env": "ask", "*.env.*": "ask", "*.env.example": "allow" },
+  "read": "allow",
   "glob": "allow",
   "grep": "allow",
   "todowrite": "allow",
@@ -115,7 +115,6 @@
     "*>*": "ask",            // any output redirect, including 2>/dev/null
     "*`*": "ask",
     "*$*": "ask",            // variables ($HOME/...) and command substitution $(...)
-    "*.env*": "ask",         // secrets files named on the command line (cat .env, grep KEY .env.local)
     // paths outside the workspace (external_directory alone misses most commands)
     // A quote can follow an option directly (-f"/etc/x"), so quoted forms need no space.
     "* /*": "ask",  "*\"/*": "ask",   "*'/*": "ask",   "*=/*": "ask",

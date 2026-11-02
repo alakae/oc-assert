@@ -55,10 +55,6 @@ ASK   ls /etc
 ASK   head -1 /etc/passwd
 ASK   grep root /etc/passwd
 
-# --- .env files ask even via allowed commands
-ASK   cat .env
-ASK   grep KEY .env.local
-
 # --- known gaps: no rule can stop these, so they run (see "Known gaps" in CLAUDE.md)
 RUN   export X=1
 RUN@1 cd && ls

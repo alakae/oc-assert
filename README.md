@@ -26,7 +26,7 @@ it inside `permission`):
 {
   "permission": {
     "*": "ask",
-    "read": { "*": "allow", "*.env": "ask", "*.env.*": "ask", "*.env.example": "allow" },
+    "read": "allow",
     // ... the rest of opencode.jsonc
   }
 }
@@ -37,7 +37,7 @@ Releases also attach `opencode.jsonc` as a file.
 ## How it decides
 
 - Unknown tools, file edits, web fetches and subagents ask.
-- Reading files is allowed, except `.env` files.
+- Reading files is allowed.
 - Shell commands ask unless an allow rule matches. Allowed are commands that
   can't write or run anything (`cat`, `grep`, `ls`, `wc`, ...), read-only git
   commands, and searches with `rg`, `git grep` and `find`.
