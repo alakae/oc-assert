@@ -251,3 +251,20 @@ RUN   grep -f a.txt a.txt
 RUN   grep -fa.txt a.txt
 RUN   rg -n hello ./a.txt
 RUN   head -n1 ./a.txt
+
+# --- shell syntax that builds an outside path from harmless-looking pieces:
+#     braces, backslashes and empty quotes all ask
+ASK   cat {/etc/hostname,}
+ASK   cat {..,x}/a.txt
+ASK   cat {.,}./a.txt
+ASK   cat .\./a.txt
+ASK   cat .''./a.txt
+ASK   cat .""./a.txt
+ASK   cat '.'./a.txt
+ASK   cat "."./a.txt
+ASK   grep -f'.'./a.txt a.txt
+# over-ask: braces in a regex
+ASK   rg 'l{2}' a.txt
+# backslashes reach the rules as "/", so regex escapes still run
+RUN   grep 'h\.llo' a.txt
+RUN   rg 'h\wllo' a.txt

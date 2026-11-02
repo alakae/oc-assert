@@ -48,8 +48,10 @@ Releases also attach `opencode.jsonc` as a file.
   the project (`/etc`, `~`, `..`) always ask, including paths attached to an
   option (`grep -f/etc/x`).
 - Glob rules can't stay inside one word, so a few ordinary commands ask too:
-  `git grep -n TODO` (an `O` after a `-`) and `rg -n x conf/` (an `f/`
-  after a `-`).
+  `git grep -n TODO` (an `O` after a `-`), `rg -n x conf/` (an `f/`
+  after a `-`), and any command with a brace, such as `rg 'a{2}'`. Braces
+  and some quotes can build a path outside the project (`cat {/etc/x,}`,
+  `cat '.'./x`), so they always ask.
 
 The config file explains each rule in a comment.
 

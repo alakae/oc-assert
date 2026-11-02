@@ -15,7 +15,7 @@ the tests after every upgrade.
 - `opencode.jsonc`: the config, with comments. Its object becomes the value of
   `permission` in `opencode.json`, without the `"$schema"` line (OpenCode
   1.19.5 and later reject it there).
-- `opencode.cases`: the test cases for the config (213).
+- `opencode.cases`: the test cases for the config (225).
 - `src/oc_assert/`: the `oc-assert` tool. For each case it starts the
   real OpenCode binary against a fake model server that asks it to run one
   command, and compares the result (RUN, ASK or DENY) with the expected one.
@@ -101,7 +101,12 @@ RUN@1 cd && ls
    attached to a short option that reads a file ask too: `-f` (grep, rg),
    `-X` (diff, du), `-O` and `-S` (git). Bundles can be any length
    (`-inwf/etc/x`), so any `f/` or `f..` after a `-` asks, including ordinary
-   paths such as `rg -n x conf/`.
+   paths such as `rg -n x conf/`. Shell syntax that can build a path from
+   harmless-looking pieces asks too: braces (`{/etc/x,}`, which also asks for
+   regexes like `rg 'a{2}'`) and quotes that split `..` (`.''./`, `'.'./`).
+   OpenCode turns every backslash into `/` in both the command and the
+   pattern before matching, so no rule can name a backslash; `.\./` reaches
+   the rules as `././`, which asks.
 6. Top level: `"*": "ask"`, so unknown or renamed tools ask; read, glob,
    grep, todowrite and skill allowed; edit, webfetch, websearch, task and
    external_directory ask. `.env` files get no special protection.
