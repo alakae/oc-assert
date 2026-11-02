@@ -132,6 +132,10 @@
     "* ~*": "ask",  "* \"~*": "ask",  "* '~*": "ask",  "*=~*": "ask",
     "* ..": "ask",  "* ../*": "ask",  "*\"..*": "ask", "*'..*": "ask",
     "*/..": "ask",  "*/../*": "ask",  "*=..*": "ask",
+    // An input redirect needs no space before its path (cat </etc/x).
+    "*</*": "ask",  "*<..*": "ask",   "*<~*": "ask",
+    // A tab separates words like a space, but the rules above expect a space.
+    "*\t*": "ask",
     // Paths attached to a short option that reads a file: -f (grep, rg),
     // -X (diff, du, git ls-files exclude-from), -O (git orderfile), -S (git
     // blame revs-file); git grep -f is covered by the -f rule.

@@ -46,7 +46,8 @@ Releases also attach `opencode.jsonc` as a file.
   of `rg` or `git grep`, `rg -z`, `git grep -O`, and `sort -o`.
 - Redirects (`>`), command substitution, variables (`$HOME`), and paths outside
   the project (`/etc`, `~`, `..`) always ask, including paths attached to an
-  option (`grep -f/etc/x`).
+  option (`grep -f/etc/x`) or to an input redirect (`cat </etc/x`), and any
+  command containing a tab.
 - Glob rules can't stay inside one word, so a few ordinary commands ask too:
   `git grep -n TODO` (an `O` after a `-`), `rg -n x conf/` (an `f/`
   after a `-`), and any command with a brace, such as `rg 'a{2}'`. Braces

@@ -268,3 +268,12 @@ ASK   rg 'l{2}' a.txt
 # backslashes reach the rules as "/", so regex escapes still run
 RUN   grep 'h\.llo' a.txt
 RUN   rg 'h\wllo' a.txt
+
+# --- input redirects with no space before the path
+ASK   cat </etc/hostname
+ASK   cat 0</etc/hostname
+ASK   cat <../a.txt
+ASK   cat <~/.bashrc
+# --- a tab instead of a space before a path (the gap is a literal tab)
+ASK   grep -f	/etc/hostname a.txt
+ASK   grep hello	../a.txt
