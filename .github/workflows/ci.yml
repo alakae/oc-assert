@@ -1,0 +1,109 @@
+name: ci
+
+# Every push to main and every pull request runs the checks and opencode.cases on
+# each pinned OpenCode version. Pushing a tag such as v1.0.0 runs the same jobs
+# and, if they all pass, publishes opencode.jsonc as a GitHub release asset.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: ruff and mypy
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.11.32"
+          enable-cache: false
+      - name: Show tool versions
+        run: |
+          echo "runner image: $ImageOS $ImageVersion"
+          git --version; node --version; npm --version; uv --version
+      - run: uv sync --locked
+      - run: uv run ruff format --check
+      - run: uv run ruff check
+      - run: uv run mypy
+
+  suite:
+    name: opencode.cases on OpenCode ${{ matrix.opencode }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each version has its own lockfile in ci/opencode/<version>/. Install
+        # scripts are skipped; the job runs the platform binary directly, which
+        # the lockfile already pins by checksum (no Node needed to run it).
+        include:
+          - opencode: "1.19.4"
+            binary: opencode-linux-x64/bin/opencode
+          - opencode: "1.19.5"
+            binary: opencode-linux-x64/bin/opencode
+          - opencode: "2.2.4"
+            binary: "@opencode/cli-linux-x64/bin/opencode"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.11.32"
+          enable-cache: false
+      - name: Install ripgrep (several cases run rg)
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ripgrep
+      - name: Show tool versions
+        run: |
+          echo "runner image: $ImageOS $ImageVersion"
+          git --version; node --version; npm --version; uv --version; rg --version | head -1
+      - name: Install OpenCode ${{ matrix.opencode }} from its lockfile
+        env:
+          DIR: ci/opencode/${{ matrix.opencode }}
+          BINARY: ci/opencode/${{ matrix.opencode }}/node_modules/${{ matrix.binary }}
+        run: |
+          npm ci --prefix "$DIR" --ignore-scripts --no-audit --no-fund
+          "$BINARY" --version
+      - name: Run opencode.cases (no network access inside the cases)
+        env:
+          OPENCODE: ci/opencode/${{ matrix.opencode }}/node_modules/${{ matrix.binary }}
+        run: uv run --locked oc-assert --opencode "$OPENCODE" --timeout 120 opencode.jsonc opencode.cases
+
+  publish:
+    name: publish opencode.jsonc
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [lint, suite]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # create the release and upload the asset
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Show tool versions
+        run: |
+          echo "runner image: $ImageOS $ImageVersion"
+          gh --version | head -1
+      - name: Create release with opencode.jsonc
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" opencode.jsonc \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --notes "OpenCode permission config. Tested with opencode.cases on OpenCode 1.19.4, 1.19.5 and 2.2.4."

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // OpenCode permissions: read-only tools and a bash allow-list run without
+  // asking; edits, fetches and anything unknown ask. Tested with opencode.cases on OpenCode 1.19.4, 1.19.5 and 2.2.4.
+  "*": "ask",                 // any tool not named below asks (incl. renamed keys after an upgrade)
+  "read": { "*": "allow", "*.env": "ask", "*.env.*": "ask", "*.env.example": "allow" },
+  "glob": "allow",
+  "grep": "allow",
+  "todowrite": "allow",
+  "skill": "allow",           // loading a skill only adds instructions; what they lead to is still checked
+  // "task" (subagents) stays at ask: which permissions a subagent runs under is untested
+  "edit": "ask",
+  "webfetch": "ask",
+  "websearch": "ask",
+  "external_directory": "ask",
+  // OpenCode 1.x reads only "bash"; 2.x reads "bash" or "shell". If a release
+  // drops "bash", this block is silently ignored and only the top-level "*"
+  // applies, so re-run the tests after every upgrade.
+  "bash": {
+    // The last matching rule wins, so no allow rule may start with "*": it would
+    // override every ask before it.
+    // Backstop: the top-level "*" already makes unknown commands ask; this line
+    // stays in case that one is ever removed.
+    "*": "ask",
+
+    // --- 1. Commands that cannot write files or run programs, whatever their
+    //        arguments (only a redirect could write, and the catch-alls below
+    //        ask for those). "X *" also matches a bare "X".
+    "ls *": "allow",
+    "pwd": "allow",
+    // cd is never matched against these rules, only its path (external_directory).
+    // On 1.x a bare "cd" goes to $HOME unchecked, so "cd && ls" lists it; 2.x asks.
+    "cat *": "allow",
+    "head *": "allow",   "tail *": "allow",
+    "wc *": "allow",
+    "stat *": "allow",
+    "grep *": "allow",   "egrep *": "allow",   "fgrep *": "allow",
+    "diff *": "allow",   "cmp *": "allow",
+    "cut *": "allow",    "tr *": "allow",      "nl *": "allow",
+    "basename *": "allow", "dirname *": "allow",
+    "realpath *": "allow", "readlink *": "allow",
+    "which *": "allow",  "type *": "allow",
+    "echo *": "allow",
+    "uname *": "allow",
+    "whoami": "allow",   "id": "allow",
+    "date": "allow",
+    "du *": "allow",     "df *": "allow",
+    "true": "allow",     "false": "allow",
+
+    // --- 2. Exact forms only, for commands that can write with some flags
+    //        (sort -o, uniq IN OUT). These are the pipeline shapes agents use.
+    "sort": "allow",     "sort -n": "allow",   "sort -r": "allow",  "sort -u": "allow",
+    "sort -rn": "allow", "sort -nr": "allow",  "sort -h": "allow",  "sort -rh": "allow",
+    "uniq": "allow",     "uniq -c": "allow",   "uniq -d": "allow",
+    // ps: no free-form flags, because "e" (ps eww, ps auxe) prints other processes' environments
+    "ps": "allow",       "ps aux": "allow",    "ps ax": "allow",    "ps -ef": "allow",  "ps -e": "allow",
+    "node -v": "allow",  "node --version": "allow",
+    "python --version": "allow", "python3 --version": "allow",
+    "npm -v": "allow",   "go version": "allow",
+
+    // --- 3. find and rg
+    // find has a fixed set of actions; these asks cover every one that runs,
+    // deletes or writes (GNU findutils 4.9).
+    "find *": "allow",
+    "find *-exec*": "ask",   // also -execdir
+    "find *-ok*": "ask",     // also -okdir
+    "find *-delete*": "ask",
+    "find *-fprint*": "ask", // also -fprint0, -fprintf
+    "find *-fls*": "ask",
+    // rg has over a hundred options, and the ones that run programs are long-only
+    // (--pre, --hostname-bin, --search-zip). So every long option asks; plain
+    // searches with short options run. Never re-allow a long option with a
+    // trailing "*": "rg --type *" would also match "rg --type py --pre=x".
+    "rg *": "allow",
+    "rg *--*": "ask",
+    "rg *-z*": "ask",        // -z = --search-zip (runs decompressors)
+    "rg *-?z*": "ask",  "rg *-??z*": "ask",   // ...also inside -lz, -lnz
+    // Exact re-allows, so nothing can be appended. Options with an argument have
+    // short forms that run: -t (--type), -g (--glob), -. (--hidden), -i, -n.
+    "rg --files": "allow",   "rg --files .": "allow",   // list project files
+    "rg --version": "allow",
+
+    // --- 4. git: read-only subcommands, minus the flags that write or run programs
+    "git status *": "allow",
+    "git diff *": "allow",
+    "git log *": "allow",
+    "git show *": "allow",
+    "git blame *": "allow",
+    "git ls-files *": "allow",
+    "git rev-parse *": "allow",
+    "git grep *": "allow",
+    "git branch": "allow",   "git branch -a": "allow",  "git branch -r": "allow",
+    "git branch -v": "allow", "git branch -vv": "allow", "git branch --show-current": "allow",
+    "git remote -v": "allow", "git stash list": "allow",
+    "git tag": "allow",      "git tag -l": "allow",
+    "git *--output*": "ask",     // writes the diff to a file
+    "git *--ext-diff*": "ask",   // runs an external diff program
+    "git *--textconv*": "ask",   // runs configured filters
+    // git grep: every long option asks, as for rg. git accepts abbreviations
+    // (--open means --open-files-in-pager, which runs a program on every match),
+    // so risky options can't be listed by name. -O is the short pager option.
+    // "git grep x -- path" asks; "git grep x 'path'" (no --) runs.
+    "git grep *--*": "ask",
+    "git grep *-O*": "ask",
+    // Not covered by any rule: a repo whose .git/config already sets
+    // diff.external or a textconv driver runs that program on plain `git diff`.
+    // Writing .git/config needs approval (edit: ask), so only a pre-prepared
+    // repo is affected.
+
+    // --- 5. Catch-alls. Last, so they win over every allow above.
+    "*>*": "ask",            // any output redirect, including 2>/dev/null
+    "*`*": "ask",
+    "*$*": "ask",            // variables ($HOME/...) and command substitution $(...)
+    "*.env*": "ask",         // secrets files named on the command line (cat .env, grep KEY .env.local)
+    // paths outside the workspace (external_directory alone misses most commands)
+    "* /*": "ask",  "* \"/*": "ask",  "* '/*": "ask",  "*=/*": "ask",
+    "* ~*": "ask",  "* \"~*": "ask",  "* '~*": "ask",  "*=~*": "ask",
+    "* ..": "ask",  "* ../*": "ask",  "* \"..*": "ask", "* '..*": "ask",
+    "*/..": "ask",  "*/../*": "ask",  "*=..*": "ask"
+  }
+}

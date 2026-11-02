@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Pins OpenCode 2.2.4 for CI (npm ci --prefix ci/opencode/2.2.4)",
+  "dependencies": {
+    "@opencode/cli": "2.2.4"
+  }
+}

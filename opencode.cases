@@ -1,0 +1,222 @@
+# Test cases for opencode.jsonc, run with: uv run oc-assert opencode.jsonc opencode.cases
+# Passes on OpenCode 1.19.4, 1.19.5 and 2.2.4.
+# Format: VERDICT[@MAJOR]  command   (@MAJOR: only on that OpenCode major version)
+
+# --- read-only commands run
+RUN   ls
+RUN   ls -la
+RUN   cat a.txt
+RUN   head -n1 a.txt
+RUN   grep hello a.txt
+RUN   wc -l a.txt
+RUN   diff a.txt a.txt
+RUN   git status
+RUN   git diff
+RUN   git log --oneline
+RUN   rg hello
+RUN   find . -name '*.txt'
+RUN   sort -rn
+RUN   ps aux
+
+# --- writes and executions ask
+ASK   touch marker
+ASK   rm a.txt
+ASK   mv a.txt b.txt
+ASK   sed -i s/h/j/ a.txt
+ASK   git commit --allow-empty -m x
+ASK   git push
+ASK   git fetch
+ASK   git checkout .
+ASK   npm install
+ASK   make
+ASK   docker build .
+ASK   curl -s http://example.com
+ASK   awk '{print}' a.txt
+
+# --- flags that turn a reader into a writer/runner ask
+ASK   sort -o out.txt a.txt
+ASK   find . -delete
+ASK   find . -exec rm {} ;
+ASK   rg --pre cat hello
+ASK   rg --hyperlink-format=default --hostname-bin=mktemp hello
+ASK   git diff --output=out.txt
+ASK   git diff --ext-diff
+
+# --- redirects, substitution, variables ask
+ASK   ls > out.txt
+ASK   ls >> out.txt
+ASK   cat a.txt | tee out.txt
+ASK   echo $(rm a.txt)
+ASK   echo `pwd`
+
+# --- paths outside the workspace ask
+ASK   cat /etc/hostname
+ASK   ls /etc
+ASK   head -1 /etc/passwd
+ASK   grep root /etc/passwd
+
+# --- .env files ask even via allowed commands
+ASK   cat .env
+ASK   grep KEY .env.local
+
+# --- known gaps: no rule can stop these, so they run (see "Known gaps" in CLAUDE.md)
+RUN   export X=1
+RUN@1 cd && ls
+
+# --- 2.x checks a bare cd, so this gap is closed there
+ASK@2 cd && ls
+
+# --- abbreviated long options: git grep accepts unambiguous prefixes, so
+#     --open / --open-files / --op mean --open-files-in-pager and run the
+#     "pager" (here rm) on every matching file
+RUN   git grep hello
+ASK   git grep --open=rm hello
+ASK   git grep --open-files=rm hello
+ASK   git grep --op=rm hello
+ASK   git grep -O rm hello
+
+# --- shell syntax that hides a second command without $, ` or >:
+#     OpenCode checks the inner command itself, on every version
+ASK   cat <(rm a.txt)
+ASK   ( rm a.txt )
+ASK   { rm a.txt; }
+ASK   ls & rm a.txt
+
+# --- search tools, common options. rg and git grep: short options run, every
+#     long option asks (risky ones are long-only, and git abbreviates them).
+#     find: everything runs except the actions that run, delete or write.
+RUN   rg -n hello
+RUN   rg -i HELLO
+RUN   rg -l hello
+RUN   rg -w hello
+RUN   rg -c hello
+RUN   rg -F hello
+RUN   rg -C2 hello
+RUN   rg -t txt hello
+RUN   rg -g '*.txt' hello
+RUN   rg -n -i -w hello .
+ASK   rg --type txt hello
+RUN   rg --files
+RUN   rg --files .
+RUN   rg --version
+ASK   rg --files --hidden
+ASK   rg --files -g '*.txt'
+ASK   rg --json hello
+ASK   rg --hidden hello
+ASK   rg --line-number hello
+ASK   rg -lz hello
+RUN   git grep -n hello
+RUN   git grep -i HELLO
+RUN   git grep -l hello
+RUN   git grep -w hello
+RUN   git grep -c hello
+RUN   git grep -e hello
+RUN   git grep -E 'h.llo'
+RUN   git grep -F hello
+ASK   git grep --line-number hello
+ASK   git grep --count hello
+ASK   git grep --ignore-case hello
+ASK   git grep hello -- '*.txt'
+RUN   git grep -n hello '*.txt'
+RUN   find . -type f
+RUN   find . -maxdepth 1
+RUN   find . -iname 'A*'
+RUN   find . -type f -name '*.txt'
+RUN   find . -mtime -1
+RUN   find . -empty
+RUN   find . -path ./.git -prune -o -type f -print
+ASK   find . -execdir true ;
+ASK   find . -ok true ;
+ASK   find . -fprint out.txt
+ASK   find . -fprintf out.txt %p
+ASK   find . -fls out.txt
+
+# --- one case per allow rule. Pipelines feed stdin readers (tr, sort, uniq);
+#     bare commands check that "X *" also matches a bare "X".
+RUN   echo
+RUN   echo hi
+RUN   uname
+RUN   uname -a
+RUN   df
+RUN   df -h .
+RUN   find
+RUN   git log
+RUN   git show
+RUN   git show HEAD
+RUN   git diff HEAD
+RUN   git status -s
+RUN   git ls-files
+RUN   git ls-files -s
+RUN   pwd
+RUN   stat a.txt
+RUN   tail -n1 a.txt
+RUN   egrep hello a.txt
+RUN   fgrep hello a.txt
+RUN   cmp a.txt a.txt
+RUN   cut -c1-3 a.txt
+RUN   nl a.txt
+RUN   cat a.txt | tr a-z A-Z
+RUN   basename a.txt
+RUN   dirname ./a.txt
+RUN   realpath a.txt
+RUN   readlink -f a.txt
+RUN   which git
+RUN   type git
+RUN   whoami
+RUN   id
+RUN   date
+RUN   du -s .
+RUN   true
+RUN   false
+RUN   cat a.txt | sort
+RUN   cat a.txt | sort -n
+RUN   cat a.txt | sort -r
+RUN   cat a.txt | sort -u
+RUN   cat a.txt | sort -nr
+RUN   cat a.txt | sort -h
+RUN   cat a.txt | sort -rh
+RUN   cat a.txt | uniq
+RUN   cat a.txt | uniq -c
+RUN   cat a.txt | uniq -d
+RUN   ps
+RUN   ps ax
+RUN   ps -e
+RUN   ps -ef
+RUN   node -v
+RUN   node --version
+RUN   python --version
+RUN   python3 --version
+RUN   npm -v
+RUN   go version
+RUN   git blame a.txt
+RUN   git rev-parse HEAD
+RUN   git branch
+RUN   git branch -a
+RUN   git branch -r
+RUN   git branch -v
+RUN   git branch -vv
+RUN   git branch --show-current
+RUN   git remote -v
+RUN   git stash list
+RUN   git tag
+RUN   git tag -l
+
+# --- one case per catch-all and option ask, where it is the last matching rule
+ASK   rg -z hello
+ASK   rg -lnz hello
+ASK   git show --textconv HEAD
+ASK   echo $HOME
+ASK   cat "/etc/hostname"
+ASK   cat '/etc/hostname'
+ASK   grep --file=/etc/hostname a.txt
+ASK   cat ~/.bashrc
+ASK   cat "~/.bashrc"
+ASK   cat '~/.bashrc'
+ASK   grep --file=~/.bashrc a.txt
+ASK   ls ..
+ASK   cat ../a.txt
+ASK   cat "../a.txt"
+ASK   cat '../a.txt'
+ASK   ls ./..
+ASK   cat ./../a.txt
+ASK   grep --file=../a.txt a.txt
