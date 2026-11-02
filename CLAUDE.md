@@ -15,7 +15,7 @@ tests after every upgrade.
 - `opencode.jsonc`: the config, with comments. Its object becomes the value of
   `permission` in `opencode.json`, without the `"$schema"` line (OpenCode
   1.19.5 and later reject it there).
-- `opencode.cases`: the test cases for the config (231).
+- `opencode.cases`: the test cases for the config (249).
 - `src/oc_assert/`: the `oc-assert` tool. For each case it starts the
   real OpenCode binary against a fake model server that asks it to run one
   command, and compares the result (RUN, ASK or DENY) with the expected one.

@@ -277,3 +277,27 @@ ASK   cat <~/.bashrc
 # --- a tab instead of a space before a path (the gap is a literal tab)
 ASK   grep -f	/etc/hostname a.txt
 ASK   grep hello	../a.txt
+
+# --- env-var prefixes: OpenCode matches the whole command, prefix included,
+#     so no allow rule matches and they ask
+ASK   GIT_EXTERNAL_DIFF=true git diff
+ASK   PAGER=true git log
+ASK   RIPGREP_CONFIG_PATH=a.txt rg hello
+ASK   LD_PRELOAD=a.txt cat a.txt
+ASK   PATH=. ls
+ASK   GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=diff.external GIT_CONFIG_VALUE_0=true git diff
+
+# --- more shell syntax that hides a command: OpenCode checks the inner one
+ASK   coproc rm a.txt
+ASK   f() ( rm a.txt ); f
+ASK   time rm a.txt
+ASK   ! rm a.txt
+ASK   exec rm a.txt
+ASK   if true; then rm a.txt; fi
+ASK   for x in 1; do rm a.txt; done
+ASK   case x in x) rm a.txt;; esac
+ASK   [[ -f a.txt ]] && rm a.txt
+ASK   (( 1 )) && rm a.txt
+ASK   ls |& rm a.txt
+# a comment hides the rest of the line from the shell too
+RUN   ls # ; rm a.txt
