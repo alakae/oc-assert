@@ -43,9 +43,13 @@ Releases also attach `opencode.jsonc` as a file.
   commands, and searches with `rg`, `git grep` and `find`.
 - Options that would make an allowed command write or run something ask: for
   example `find -exec`, `find -delete`, `git diff --output`, any long option
-  of `rg` or `git grep`, and `sort -o`.
+  of `rg` or `git grep`, `rg -z`, `git grep -O`, and `sort -o`.
 - Redirects (`>`), command substitution, variables (`$HOME`), and paths outside
-  the project (`/etc`, `~`, `..`) always ask.
+  the project (`/etc`, `~`, `..`) always ask, including paths attached to an
+  option (`grep -f/etc/x`).
+- Glob rules can't stay inside one word, so a few ordinary commands ask too:
+  `git grep -n TODO` (an `O` after a `-`) and `rg -n x conf/` (an `f/`
+  after a `-`).
 
 The config file explains each rule in a comment.
 

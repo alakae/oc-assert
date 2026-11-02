@@ -73,8 +73,10 @@
     // trailing "*": "rg --type *" would also match "rg --type py --pre=x".
     "rg *": "allow",
     "rg *--*": "ask",
-    "rg *-z*": "ask",        // -z = --search-zip (runs decompressors)
-    "rg *-?z*": "ask",  "rg *-??z*": "ask",   // ...also inside -lz, -lnz
+    // -z = --search-zip (runs decompressors). Short options can be bundled to any
+    // length (-lnHz), and patterns can't stop at a word boundary, so any "z"
+    // after a "-" asks. z is rare in searches; "rg -n zebra" asks too.
+    "rg *-*z*": "ask",
     // Exact re-allows, so nothing can be appended. Options with an argument have
     // short forms that run: -t (--type), -g (--glob), -. (--hidden), -i, -n.
     "rg --files": "allow",   "rg --files .": "allow",   // list project files
@@ -98,10 +100,12 @@
     "git *--textconv*": "ask",   // runs configured filters
     // git grep: every long option asks, as for rg. git accepts abbreviations
     // (--open means --open-files-in-pager, which runs a program on every match),
-    // so risky options can't be listed by name. -O is the short pager option.
+    // so risky options can't be listed by name. -O is the short pager option;
+    // it can end a bundle of any length (-inwOcmd), so any uppercase O after a
+    // "-" asks ("git grep -n TODO" asks too).
     // "git grep x -- path" asks; "git grep x 'path'" (no --) runs.
     "git grep *--*": "ask",
-    "git grep *-O*": "ask",
+    "git grep *-*O*": "ask",
     // Not covered by any rule: a repo whose .git/config already sets
     // diff.external or a textconv driver runs that program on plain `git diff`.
     // Writing .git/config needs approval (edit: ask), so only a pre-prepared
@@ -113,9 +117,20 @@
     "*$*": "ask",            // variables ($HOME/...) and command substitution $(...)
     "*.env*": "ask",         // secrets files named on the command line (cat .env, grep KEY .env.local)
     // paths outside the workspace (external_directory alone misses most commands)
-    "* /*": "ask",  "* \"/*": "ask",  "* '/*": "ask",  "*=/*": "ask",
+    // A quote can follow an option directly (-f"/etc/x"), so quoted forms need no space.
+    "* /*": "ask",  "*\"/*": "ask",   "*'/*": "ask",   "*=/*": "ask",
     "* ~*": "ask",  "* \"~*": "ask",  "* '~*": "ask",  "*=~*": "ask",
-    "* ..": "ask",  "* ../*": "ask",  "* \"..*": "ask", "* '..*": "ask",
-    "*/..": "ask",  "*/../*": "ask",  "*=..*": "ask"
+    "* ..": "ask",  "* ../*": "ask",  "*\"..*": "ask", "*'..*": "ask",
+    "*/..": "ask",  "*/../*": "ask",  "*=..*": "ask",
+    // Paths attached to a short option that reads a file: -f (grep, rg),
+    // -X (diff, du, git ls-files exclude-from), -O (git orderfile), -S (git
+    // blame revs-file); git grep -f is covered by the -f rule.
+    // Bundles can be any length (-inwf/etc/x), so any "f/" after a "-" asks,
+    // including ordinary paths such as "rg -n x conf/".
+    // (~ needs no rule here: the shell doesn't expand it after -f.)
+    "*-*f/*": "ask",      "*-*f..*": "ask",
+    "*-*X/*": "ask",      "*-*X..*": "ask",
+    "git *-*O/*": "ask",  "git *-*O..*": "ask",
+    "git *-*S/*": "ask",  "git *-*S..*": "ask"
   }
 }

@@ -15,7 +15,7 @@ the tests after every upgrade.
 - `opencode.jsonc`: the config, with comments. Its object becomes the value of
   `permission` in `opencode.json`, without the `"$schema"` line (OpenCode
   1.19.5 and later reject it there).
-- `opencode.cases`: the test cases for the config (187).
+- `opencode.cases`: the test cases for the config (215).
 - `src/oc_assert/`: the `oc-assert` tool. For each case it starts the
   real OpenCode binary against a fake model server that asks it to run one
   command, and compares the result (RUN, ASK or DENY) with the expected one.
@@ -84,13 +84,24 @@ RUN@1 cd && ls
      keep up. Every long option asks (`rg *--*`, `git grep *--*`); searches
      with short options run. A long option may be re-allowed only as an exact
      form (`rg --files`), never with a trailing `*`.
+   - Two risky short options remain: rg's `-z` (runs decompressors) and git
+     grep's `-O` (runs a pager). Short options bundle to any length
+     (`-lnHz`), and `*` and `?` match spaces too, so no pattern can stay
+     inside one word. Any `z` (rg) or uppercase `O` (git grep) after a `-`
+     asks (`rg *-*z*`, `git grep *-*O*`), which also asks for searches like
+     `git grep -n TODO`. A fixed-length `-?z` would leave longer bundles open.
    - `find` has a fixed set of actions, so asking for the ones that run,
      delete or write (`-exec`, `-ok`, `-delete`, `-fprint`, `-fls`) covers it.
    - Other read-only git commands ask for the options that write or run
      (`--output`, `--ext-diff`, `--textconv`).
 5. Catch-all asks come last: redirects (`*>*`), backticks, `$` (variables and
    `$(...)`), paths outside the workspace (`* /*`, `* ~*`, `* ..` and their
-   quoted and `=` forms), and `.env` files.
+   quoted and `=` forms), and `.env` files. A quote can follow an option
+   directly (`-f"/etc/x"`), so the quoted forms need no leading space. Paths
+   attached to a short option that reads a file ask too: `-f` (grep, rg),
+   `-X` (diff, du), `-O` and `-S` (git). Bundles can be any length
+   (`-inwf/etc/x`), so any `f/` or `f..` after a `-` asks, including ordinary
+   paths such as `rg -n x conf/`.
 6. Top level: `"*": "ask"`, so unknown or renamed tools ask; `read` allowed
    except `.env` files; glob, grep, todowrite and skill allowed; edit,
    webfetch, websearch, task and external_directory ask.

@@ -74,6 +74,11 @@ ASK   git grep --open=rm hello
 ASK   git grep --open-files=rm hello
 ASK   git grep --op=rm hello
 ASK   git grep -O rm hello
+ASK   git grep -iOtrue hello
+ASK   git grep -nOtrue hello
+ASK   git grep -inwOtrue hello
+# any uppercase O after a "-" asks, since -O can end a bundle of any length
+ASK   git grep -n TODO
 
 # --- shell syntax that hides a second command without $, ` or >:
 #     OpenCode checks the inner command itself, on every version
@@ -86,7 +91,7 @@ ASK   ls & rm a.txt
 #     long option asks (risky ones are long-only, and git abbreviates them).
 #     find: everything runs except the actions that run, delete or write.
 RUN   rg -n hello
-RUN   rg -i HELLO
+RUN   rg -i HELL
 RUN   rg -l hello
 RUN   rg -w hello
 RUN   rg -c hello
@@ -106,7 +111,7 @@ ASK   rg --hidden hello
 ASK   rg --line-number hello
 ASK   rg -lz hello
 RUN   git grep -n hello
-RUN   git grep -i HELLO
+RUN   git grep -i HELL
 RUN   git grep -l hello
 RUN   git grep -w hello
 RUN   git grep -c hello
@@ -204,6 +209,8 @@ RUN   git tag -l
 # --- one case per catch-all and option ask, where it is the last matching rule
 ASK   rg -z hello
 ASK   rg -lnz hello
+ASK   rg -lnHz hello
+ASK   rg -inHlz hello
 ASK   git show --textconv HEAD
 ASK   echo $HOME
 ASK   cat "/etc/hostname"
@@ -220,3 +227,31 @@ ASK   cat '../a.txt'
 ASK   ls ./..
 ASK   cat ./../a.txt
 ASK   grep --file=../a.txt a.txt
+ASK   grep -f/etc/hostname a.txt
+ASK   rg -f/etc/hostname hello
+ASK   grep -f../a.txt a.txt
+ASK   rg -f../a.txt hello
+
+# --- paths attached to a short option that reads a file: -f (grep, rg),
+#     -X (diff, du), -O (git diff/log/show), -S (git blame). Bundles of any
+#     length, and quoted paths attached to anything.
+ASK   grep -nf/etc/hostname a.txt
+ASK   grep -inwf/etc/hostname a.txt
+ASK   rg -inf../a.txt hello
+ASK   diff -X/etc/hostname a.txt a.txt
+ASK   du -X/etc/hostname .
+ASK   git diff -O/etc/hostname
+ASK   git log -p -O../a.txt
+ASK   git blame -S/etc/hostname a.txt
+ASK   git ls-files -X/etc/hostname
+ASK   git grep -nf../a.txt
+ASK   grep -f"/etc/hostname" a.txt
+ASK   grep -f'/etc/hostname' a.txt
+ASK   grep -f"../a.txt" a.txt
+# over-ask: any "f/" after a "-" asks, even an ordinary path
+ASK   rg -n hello conf/
+# relative paths inside the workspace still run
+RUN   grep -f a.txt a.txt
+RUN   grep -fa.txt a.txt
+RUN   rg -n hello ./a.txt
+RUN   head -n1 ./a.txt
