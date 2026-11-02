@@ -1,7 +1,0 @@
-{
-  "private": true,
-  "description": "Pins OpenCode 1.19.4 for CI (npm ci --prefix ci/opencode/1.19.4)",
-  "dependencies": {
-    "opencode-ai": "1.19.4"
-  }
-}

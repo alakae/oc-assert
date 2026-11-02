@@ -1,5 +1,5 @@
 # Test cases for opencode.jsonc, run with: uv run oc-assert opencode.jsonc opencode.cases
-# Passes on OpenCode 1.19.4, 1.19.5 and 2.2.4.
+# Passes on OpenCode 1.19.5 and 2.2.4.
 # Format: VERDICT[@MAJOR]  command   (@MAJOR: only on that OpenCode major version)
 
 # --- read-only commands run

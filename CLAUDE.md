@@ -7,8 +7,8 @@ the workspace.
 The repository also holds `oc-assert`, which tests the config against the real
 OpenCode binary.
 
-Tested with OpenCode 1.19.4, 1.19.5 and 2.2.4. OpenCode changes often: re-run
-the tests after every upgrade.
+Tested with OpenCode 1.19.5 and 2.2.4. OpenCode changes often: re-run the
+tests after every upgrade.
 
 ## Files
 
@@ -149,7 +149,7 @@ it.) A case that tries the network, such as `curl`, fails if it ever runs.
 ## CI and releases
 
 - `.github/workflows/ci.yml` runs on pushes to main, pull requests and `v*`
-  tags: ruff and mypy, then `opencode.cases` on OpenCode 1.19.4, 1.19.5 and 2.2.4.
+  tags: ruff and mypy, then `opencode.cases` on OpenCode 1.19.5 and 2.2.4.
   On a `v*` tag, if every job passes, it creates a GitHub release with
   `opencode.jsonc` attached. Only that job can write to the repository.
 - Each OpenCode version is installed with `npm ci --ignore-scripts` from its

@@ -7,7 +7,7 @@ searching, `git status`, `git log` and similar.
 Everything that could write files, run programs, use the network or reach
 outside the project asks first.
 
-Tested on OpenCode 1.19.4, 1.19.5 and 2.2.4.
+Tested on OpenCode 1.19.5 and 2.2.4.
 
 **This is not a security boundary.** It reduces approval prompts; it does not
 contain a misbehaving agent. A few things can't be caught by permission rules

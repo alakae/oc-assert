@@ -1,7 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
   // OpenCode permissions: read-only tools and a bash allow-list run without
-  // asking; edits, fetches and anything unknown ask. Tested with opencode.cases on OpenCode 1.19.4, 1.19.5 and 2.2.4.
+  // asking; edits, fetches and anything unknown ask. Tested with opencode.cases on OpenCode 1.19.5 and 2.2.4.
   "*": "ask",                 // any tool not named below asks (incl. renamed keys after an upgrade)
   "read": "allow",
   "glob": "allow",

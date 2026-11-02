@@ -51,8 +51,6 @@ jobs:
         # scripts are skipped; the job runs the platform binary directly, which
         # the lockfile already pins by checksum (no Node needed to run it).
         include:
-          - opencode: "1.19.4"
-            binary: opencode-linux-x64/bin/opencode
           - opencode: "1.19.5"
             binary: opencode-linux-x64/bin/opencode
           - opencode: "2.2.4"
@@ -106,4 +104,4 @@ jobs:
           gh release create "$TAG" opencode.jsonc \
             --repo "$GITHUB_REPOSITORY" \
             --title "$TAG" \
-            --notes "OpenCode permission config. Tested with opencode.cases on OpenCode 1.19.4, 1.19.5 and 2.2.4."
+            --notes "OpenCode permission config. Tested with opencode.cases on OpenCode 1.19.5 and 2.2.4."
