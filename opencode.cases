@@ -42,7 +42,7 @@ ASK   rg --hyperlink-format=default --hostname-bin=mktemp hello
 ASK   git diff --output=out.txt
 ASK   git diff --ext-diff
 # quotes split the option name, so "git *--output*" doesn't match
-ASK   git status --outpu"t"=foo
+ASK   git diff --outpu"t"=foo
 
 # --- redirects, substitution, variables ask
 ASK   ls > out.txt
